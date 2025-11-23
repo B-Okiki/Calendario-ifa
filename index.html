@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Calendario IFA 2025</title>
+    <meta name="theme-color" content="#1F2937">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * { -webkit-tap-highlight-color: transparent; }
+        body { touch-action: pan-y; }
+    </style>
+</head>
+<body class="bg-gray-900">
+    <div id="app" class="min-h-screen p-3"></div>
+
+    <script>
+        const oggi = new Date();
+        let annoSelezionato = oggi.getFullYear();
+        let meseSelezionato = oggi.getMonth();
+        const meseCorrente = oggi.getMonth();
+        const giornoCorrente = oggi.getDate();
+
+        const calcolaOse = (giorno, mese, anno) => {
+            const dataRiferimento = new Date(2025, 0, 1);
+            const dataCorrente = new Date(anno, mese, giorno);
+            const differenzaGiorni = Math.floor((dataCorrente - dataRiferimento) / (1000 * 60 * 60 * 24));
+            const indiceGiorno = differenzaGiorni % 4;
+            const nomiOse = ['Ọsẹ́ Osa', 'Ọsẹ́ Ogun', 'Ọsẹ́ Jakuta', 'Ọsẹ́ Ifá'];
+            return nomiOse[indiceGiorno < 0 ? (indiceGiorno + 4) % 4 : indiceGiorno];
+        };
+
+        const calcolaAnnoYoruba = (anno, mese, giorno) => {
+            if (mese < 5 || (mese === 5 && giorno <= 2)) {
+                return 10066 + (anno - 2025);
+            } else {
+                return 10067 + (anno - 2025);
+            }
+        };
+
+        const isBisestile = (anno) => {
+            return (anno % 4 === 0 && anno % 100 !== 0) || (anno % 400 === 0);
+        };
+
+        const giorniSettimanaOccidentali = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'];
+
+        const calcolaInizioMese = (mese, anno) => {
+            const giorniPerMese = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+            let giorni = giorniPerMese[mese];
+            if (mese > 1 && isBisestile(anno)) giorni += 1;
+            const anniDifferenza = anno - 2025;
+            const giorniBisestili = Math.floor(anniDifferenza / 4);
+            return (giorni + (anniDifferenza * 365) + giorniBisestili) % 4;
+        };
+
+        const giorniSettimana = [
+            { nome: 'Ọsẹ́ Osa', orisa: 'Obatalá, Egungun, Madri ancestrali, Ogiiriiyan Yemoja, Yemoo', colore: 'bg-gray-50 border-2 border-gray-200 text-gray-700' },
+            { nome: 'Ọsẹ́ Ogun', orisa: 'Ogun, Osossi, Oko, Ija, Erinle', colore: 'bg-emerald-100 text-emerald-800 border border-emerald-200' },
+            { nome: 'Ọsẹ́ Jakuta', orisa: 'Sango, Oya, Aganju, Obaluaje/Sanpona', colore: 'bg-rose-100 text-rose-800 border border-rose-200' },
+            { nome: 'Ọsẹ́ Ifá', orisa: 'Ifa, Odù, Aje, Olosa, Egbe orun, Osun, Orì, Esù', colore: 'bg-amber-50 text-amber-800 border border-amber-200' }
+        ];
+
+        const festivita = {
+            5: { 
+                2: { nome: 'FINE ANNO YORUBA' }, 
+                3: { nome: 'CAPODANNO YORUBA' }
+            }
+        };
+
+        // Calcola i giorni Itadogun (13 e 29 ottobre = 16 giorni di intervallo)
+        const calcolaItadogun = (giorno, mese, anno) => {
+            const dataBase = new Date(2025, 9, 13); // 13 ottobre 2025
+            const dataCorrente = new Date(anno, mese, giorno);
+            const differenzaGiorni = Math.floor((dataCorrente - dataBase) / (1000 * 60 * 60 * 24));
+            return differenzaGiorni >= 0 && differenzaGiorni % 16 === 0;
+        };
+
+        // Calcola i giorni Jacuta Oloyin (ogni 28 giorni a partire dal 3 ottobre 2025)
+        const calcolaJacutaOloyin = (giorno, mese, anno) => {
+            const dataBase = new Date(2025, 9, 3); // 3 ottobre 2025
+            const dataCorrente = new Date(anno, mese, giorno);
+            const differenzaGiorni = Math.floor((dataCorrente - dataBase) / (1000 * 60 * 60 * 24));
+            return differenzaGiorni >= 0 && differenzaGiorni % 28 === 0;
+        };
+
+        const nomiMesi = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
+
+        function render() {
+            const oseOggi = calcolaOse(giornoCorrente, meseCorrente, annoSelezionato);
+            const annoYoruba = calcolaAnnoYoruba(annoSelezionato, meseSelezionato, giornoCorrente);
+            
+            const inizioMese = calcolaInizioMese(meseSelezionato, annoSelezionato);
+            const giorniMese = meseSelezionato === 1 ? (isBisestile(annoSelezionato) ? 29 : 28) : 
+                              [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][meseSelezionato];
+
+            let html = `
+                <div class="max-w-4xl mx-auto">
+                    <!-- Header -->
+                    <div class="bg-gray-800 rounded-xl shadow-md p-4 mb-4 border border-gray-700">
+                        <div class="flex flex-col items-center">
+                            <img src="logo-ifa.png" alt="IFA Logo" class="w-20 h-20 mb-2 object-contain">
+                            <h1 class="text-2xl font-bold text-white text-center">Calendario IFA</h1>
+                            <p class="text-center text-gray-400 text-sm mt-1">ÒRÌSÀ IFÁ ITALIA</p>
+                        </div>
+                    </div>
+
+                    <!-- Anno -->
+                    <div class="bg-gray-800 rounded-xl shadow-md p-3 mb-3 border border-gray-700">
+                        <div class="flex items-center justify-center gap-4">
+                            <button onclick="cambiaAnno(-1)" class="bg-gray-700 active:bg-gray-600 text-gray-200 p-2 rounded-lg">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                            </button>
+                            <div class="text-center">
+                                <div class="text-xl font-bold text-white">${annoSelezionato}</div>
+                                <div class="text-xs text-gray-400">Anno Yoruba: ${annoYoruba}</div>
+                            </div>
+                            <button onclick="cambiaAnno(1)" class="bg-gray-700 active:bg-gray-600 text-gray-200 p-2 rounded-lg">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                            </button>
+                        </div>
+                    </div>`;
+
+            if (annoSelezionato === oggi.getFullYear()) {
+                html += `
+                    <div class="text-center mb-3">
+                        <div class="inline-block bg-blue-900 text-blue-200 px-4 py-2 rounded-lg font-bold text-sm border border-blue-800">
+                            <div>Oggi: ${giornoCorrente} ${nomiMesi[meseCorrente]} ${annoSelezionato}</div>
+                            <div class="text-lg mt-1">${oseOggi}</div>
+                        </div>
+                    </div>`;
+            }
+
+            html += `
+                    <!-- Mese -->
+                    <div class="bg-gray-800 rounded-xl shadow-md p-3 mb-4 border border-gray-700">
+                        <div class="flex items-center justify-between gap-4">
+                            <button onclick="cambiaMese(-1)" class="bg-gray-700 active:bg-gray-600 text-gray-200 p-2 rounded-lg">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                            </button>
+                            <span class="text-lg font-bold text-white">${nomiMesi[meseSelezionato]}</span>
+                            <button onclick="cambiaMese(1)" class="bg-gray-700 active:bg-gray-600 text-gray-200 p-2 rounded-lg">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Calendario -->
+                    <div class="bg-gray-800 rounded-xl shadow-md p-4 mb-4 border border-gray-700">
+                        <h2 class="text-xl font-bold text-white mb-3 text-center">${nomiMesi[meseSelezionato]} ${annoSelezionato}</h2>
+                        <div class="grid grid-cols-4 gap-2">`;
+
+            for (let i = 0; i < inizioMese; i++) {
+                html += '<div></div>';
+            }
+
+            for (let giorno = 1; giorno <= giorniMese; giorno++) {
+                const giornoSettimana = (inizioMese + giorno - 1) % 4;
+                const giornoInfo = giorniSettimana[giornoSettimana];
+                const haFesta = festivita[meseSelezionato] && festivita[meseSelezionato][giorno];
+                const isOggi = annoSelezionato === oggi.getFullYear() && meseSelezionato === meseCorrente && giorno === giornoCorrente;
+                const dataCorrente = new Date(annoSelezionato, meseSelezionato, giorno);
+                const giornoOcc = giorniSettimanaOccidentali[dataCorrente.getDay()];
+                const isItadogun = calcolaItadogun(giorno, meseSelezionato, annoSelezionato);
+                const isJacutaOloyin = calcolaJacutaOloyin(giorno, meseSelezionato, annoSelezionato);
+                
+                let bordoExtra = '';
+                if (isItadogun) bordoExtra = 'ring-2 ring-yellow-500';
+                if (isJacutaOloyin) bordoExtra = 'ring-2 ring-red-500';
+
+                html += `
+                    <div class="${giornoInfo.colore} rounded-lg p-2 flex flex-col items-center justify-center shadow-sm ${isOggi ? 'ring-2 ring-blue-600' : bordoExtra}">
+                        <div class="font-bold text-xl">${giorno}</div>
+                        <div class="text-xs font-semibold text-center leading-tight">${giornoInfo.nome}</div>
+                        <div class="text-xs text-center">${giornoInfo.orisa.split(',')[0]}</div>
+                        <div class="text-xs text-gray-500 mt-1">${giornoOcc}</div>
+                        ${haFesta ? `<div class="mt-1 bg-purple-600 text-white text-xs px-2 py-0.5 rounded font-bold">${haFesta.nome}</div>` : ''}
+                    </div>`;
+            }
+
+            html += `
+                        </div>
+                    </div>
+
+                    <!-- Legenda -->
+                    <div class="bg-gray-800 rounded-xl shadow-md p-4 mb-3 border border-gray-700">
+                        <h3 class="font-bold text-white mb-2 text-center">Settimana Yoruba (4 giorni)</h3>
+                        <div class="grid grid-cols-1 gap-2">`;
+
+            giorniSettimana.forEach(giorno => {
+                html += `
+                    <div class="${giorno.colore} rounded-lg p-3 shadow-sm">
+                        <div class="font-bold text-sm mb-1">${giorno.nome}</div>
+                        <div class="text-xs leading-relaxed">${giorno.orisa}</div>
+                    </div>`;
+            });
+
+            html += `
+                        </div>
+                        
+                        <h3 class="font-bold text-white mb-2 mt-4 text-center">Giorni Speciali</h3>
+                        <div class="grid grid-cols-1 gap-2">
+                            <div class="bg-white rounded-lg p-3 shadow-sm border-4 border-yellow-400">
+                                <div class="font-bold text-base text-gray-800 text-center">Itadogun</div>
+                            </div>
+                            <div class="bg-white rounded-lg p-3 shadow-sm border-4 border-red-500">
+                                <div class="font-bold text-base text-gray-800 text-center">Jacuta Oloyin</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center text-gray-500 text-xs py-3">Creato da Okiki*</div>
+                </div>`;
+
+            document.getElementById('app').innerHTML = html;
+        }
+
+        function cambiaAnno(delta) {
+            annoSelezionato += delta;
+            render();
+        }
+
+        function cambiaMese(delta) {
+            meseSelezionato += delta;
+            if (meseSelezionato < 0) {
+                meseSelezionato = 11;
+                annoSelezionato--;
+            } else if (meseSelezionato > 11) {
+                meseSelezionato = 0;
+                annoSelezionato++;
+            }
+            render();
+        }
+
+        render();
+    </script>
+</body>
+</html>
