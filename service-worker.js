@@ -1,10 +1,9 @@
 const CACHE_NAME = 'calendario-ifa-v1';
 const urlsToCache = [
-  '/calendario-ifa/',
-  '/calendario-ifa/index.html',
-  '/calendario-ifa/logo-ifa.png',
-  '/calendario-ifa/manifest.json',
-  'https://cdn.tailwindcss.com'
+  '/Calendario-ifa/',
+  '/Calendario-ifa/index.html',
+  '/Calendario-ifa/logo-ifa.png',
+  '/Calendario-ifa/manifest.json'
 ];
 
 // Installazione del Service Worker
@@ -16,6 +15,7 @@ self.addEventListener('install', event => {
         return cache.addAll(urlsToCache);
       })
   );
+  self.skipWaiting();
 });
 
 // Attivazione del Service Worker
@@ -32,6 +32,7 @@ self.addEventListener('activate', event => {
       );
     })
   );
+  return self.clients.claim();
 });
 
 // Intercettazione delle richieste
@@ -39,18 +40,14 @@ self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
       .then(response => {
-        // Ritorna la risorsa dalla cache se disponibile
         if (response) {
           return response;
         }
-        // Altrimenti scarica dalla rete
         return fetch(event.request).then(
           response => {
-            // Controlla se la risposta è valida
             if (!response || response.status !== 200 || response.type !== 'basic') {
               return response;
             }
-            // Clona la risposta
             const responseToCache = response.clone();
             caches.open(CACHE_NAME)
               .then(cache => {
@@ -58,7 +55,9 @@ self.addEventListener('fetch', event => {
               });
             return response;
           }
-        );
+        ).catch(() => {
+          return caches.match('/Calendario-ifa/index.html');
+        });
       })
   );
 });

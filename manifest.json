@@ -2,20 +2,21 @@
   "name": "Calendario IFA Yoruba",
   "short_name": "IFA Calendar",
   "description": "Calendario tradizionale Yoruba con settimana di 4 giorni",
-  "start_url": "/calendario-ifa/",
+  "start_url": "/Calendario-ifa/",
+  "scope": "/Calendario-ifa/",
   "display": "standalone",
   "background_color": "#111827",
   "theme_color": "#1F2937",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "/Calendario-ifa/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "icon-512.png",
+      "src": "/Calendario-ifa/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
