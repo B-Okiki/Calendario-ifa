@@ -4,19 +4,101 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Calendario IFA 2025</title>
+    <meta name="description" content="Calendario tradizionale Yoruba con settimana di 4 giorni">
     <meta name="theme-color" content="#1F2937">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="IFA Calendar">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="logo-ifa.png">
+    <link rel="apple-touch-icon" href="logo-ifa.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         * { -webkit-tap-highlight-color: transparent; }
         body { touch-action: pan-y; }
+        
+        /* Banner di installazione */
+        #install-banner {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            display: none;
+            z-index: 1000;
+            animation: slideUp 0.5s ease;
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateX(-50%) translateY(100px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+        
+        #install-banner button {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-left: 10px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body class="bg-gray-900">
+    <!-- Banner installazione -->
+    <div id="install-banner">
+        <span>📱 Installa l'app Calendario IFA</span>
+        <button id="install-button">Installa</button>
+        <button id="dismiss-button" style="background: transparent; color: white;">✕</button>
+    </div>
+
     <div id="app" class="min-h-screen p-3"></div>
 
     <script>
+        // Registrazione Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(registration => {
+                        console.log('Service Worker registrato:', registration);
+                    })
+                    .catch(error => {
+                        console.log('Errore Service Worker:', error);
+                    });
+            });
+        }
+
+        // Gestione installazione PWA
+        let deferredPrompt;
+        const installBanner = document.getElementById('install-banner');
+        const installButton = document.getElementById('install-button');
+        const dismissButton = document.getElementById('dismiss-button');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBanner.style.display = 'block';
+        });
+
+        installButton.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`Scelta utente: ${outcome}`);
+                deferredPrompt = null;
+                installBanner.style.display = 'none';
+            }
+        });
+
+        dismissButton.addEventListener('click', () => {
+            installBanner.style.display = 'none';
+        });
         const oggi = new Date();
         let annoSelezionato = oggi.getFullYear();
         let meseSelezionato = oggi.getMonth();
