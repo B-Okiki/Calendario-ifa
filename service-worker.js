@@ -1,4 +1,4 @@
-const CACHE_NAME = 'calendario-ifa-v1';
+const CACHE_NAME = 'calendario-ifa-v2';
 const urlsToCache = [
   '/Calendario-ifa/',
   '/Calendario-ifa/index.html',
