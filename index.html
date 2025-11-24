@@ -61,16 +61,43 @@
     <div id="app" class="min-h-screen p-3"></div>
 
     <script>
-        // Registrazione Service Worker
+        // Registrazione Service Worker con aggiornamento automatico
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('service-worker.js')
                     .then(registration => {
                         console.log('Service Worker registrato:', registration);
+                        
+                        // Controlla aggiornamenti ogni 60 secondi
+                        setInterval(() => {
+                            registration.update();
+                        }, 60000);
+                        
+                        // Rileva nuove versioni e aggiorna automaticamente
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // Nuovo service worker disponibile, ricarica la pagina
+                                    if (confirm('📱 Nuova versione disponibile! Vuoi aggiornare?')) {
+                                        newWorker.postMessage({ type: 'SKIP_WAITING' });
+                                        window.location.reload();
+                                    }
+                                }
+                            });
+                        });
                     })
                     .catch(error => {
                         console.log('Errore Service Worker:', error);
                     });
+                
+                // Ricarica quando il service worker prende il controllo
+                let refreshing;
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    if (refreshing) return;
+                    refreshing = true;
+                    window.location.reload();
+                });
             });
         }
 
