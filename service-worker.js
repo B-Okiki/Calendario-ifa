@@ -1,4 +1,4 @@
-const CACHE_NAME = 'calendario-ifa-v2';
+const CACHE_NAME = 'calendario-ifa-v5';
 const urlsToCache = [
   '/Calendario-ifa/',
   '/Calendario-ifa/index.html',
@@ -15,7 +15,6 @@ self.addEventListener('install', event => {
         return cache.addAll(urlsToCache);
       })
   );
-  // Forza l'attivazione immediata
   self.skipWaiting();
 });
 
@@ -24,6 +23,14 @@ self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
+});
+
+// Gestione click su notifica - IMPORTANTE PER LE NOTIFICHE
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    clients.openWindow(event.notification.data.url)
+  );
 });
 
 // Attivazione del Service Worker

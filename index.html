@@ -17,7 +17,6 @@
         * { -webkit-tap-highlight-color: transparent; }
         body { touch-action: pan-y; }
         
-        /* Banner di installazione */
         #install-banner {
             position: fixed;
             bottom: 20px;
@@ -51,7 +50,6 @@
     </style>
 </head>
 <body class="bg-gray-900">
-    <!-- Banner installazione -->
     <div id="install-banner">
         <span>📱 Installa l'app Calendario IFA</span>
         <button id="install-button">Installa</button>
@@ -61,71 +59,6 @@
     <div id="app" class="min-h-screen p-3"></div>
 
     <script>
-        // Registrazione Service Worker con aggiornamento automatico
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('service-worker.js')
-                    .then(registration => {
-                        console.log('Service Worker registrato:', registration);
-                        
-                        // Controlla aggiornamenti ogni 60 secondi
-                        setInterval(() => {
-                            registration.update();
-                        }, 60000);
-                        
-                        // Rileva nuove versioni e aggiorna automaticamente
-                        registration.addEventListener('updatefound', () => {
-                            const newWorker = registration.installing;
-                            newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    // Nuovo service worker disponibile, ricarica la pagina
-                                    if (confirm('📱 Nuova versione disponibile! Vuoi aggiornare?')) {
-                                        newWorker.postMessage({ type: 'SKIP_WAITING' });
-                                        window.location.reload();
-                                    }
-                                }
-                            });
-                        });
-                    })
-                    .catch(error => {
-                        console.log('Errore Service Worker:', error);
-                    });
-                
-                // Ricarica quando il service worker prende il controllo
-                let refreshing;
-                navigator.serviceWorker.addEventListener('controllerchange', () => {
-                    if (refreshing) return;
-                    refreshing = true;
-                    window.location.reload();
-                });
-            });
-        }
-
-        // Gestione installazione PWA
-        let deferredPrompt;
-        const installBanner = document.getElementById('install-banner');
-        const installButton = document.getElementById('install-button');
-        const dismissButton = document.getElementById('dismiss-button');
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            installBanner.style.display = 'block';
-        });
-
-        installButton.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                console.log(`Scelta utente: ${outcome}`);
-                deferredPrompt = null;
-                installBanner.style.display = 'none';
-            }
-        });
-
-        dismissButton.addEventListener('click', () => {
-            installBanner.style.display = 'none';
-        });
         const oggi = new Date();
         let annoSelezionato = oggi.getFullYear();
         let meseSelezionato = oggi.getMonth();
@@ -178,17 +111,15 @@
             }
         };
 
-        // Calcola i giorni Itadogun (13 e 29 ottobre = 16 giorni di intervallo)
         const calcolaItadogun = (giorno, mese, anno) => {
-            const dataBase = new Date(2025, 9, 13); // 13 ottobre 2025
+            const dataBase = new Date(2025, 9, 13);
             const dataCorrente = new Date(anno, mese, giorno);
             const differenzaGiorni = Math.floor((dataCorrente - dataBase) / (1000 * 60 * 60 * 24));
             return differenzaGiorni >= 0 && differenzaGiorni % 16 === 0;
         };
 
-        // Calcola i giorni Jacuta Oloyin (ogni 28 giorni a partire dal 3 ottobre 2025)
         const calcolaJacutaOloyin = (giorno, mese, anno) => {
-            const dataBase = new Date(2025, 9, 3); // 3 ottobre 2025
+            const dataBase = new Date(2025, 9, 3);
             const dataCorrente = new Date(anno, mese, giorno);
             const differenzaGiorni = Math.floor((dataCorrente - dataBase) / (1000 * 60 * 60 * 24));
             return differenzaGiorni >= 0 && differenzaGiorni % 28 === 0;
@@ -206,7 +137,6 @@
 
             let html = `
                 <div class="max-w-4xl mx-auto">
-                    <!-- Header -->
                     <div class="bg-gray-800 rounded-xl shadow-md p-4 mb-4 border border-gray-700">
                         <div class="flex flex-col items-center">
                             <img src="logo-ifa.png" alt="IFA Logo" class="w-20 h-20 mb-2 object-contain">
@@ -215,7 +145,6 @@
                         </div>
                     </div>
 
-                    <!-- Anno -->
                     <div class="bg-gray-800 rounded-xl shadow-md p-3 mb-3 border border-gray-700">
                         <div class="flex items-center justify-center gap-4">
                             <button onclick="cambiaAnno(-1)" class="bg-gray-700 active:bg-gray-600 text-gray-200 p-2 rounded-lg">
@@ -242,7 +171,6 @@
             }
 
             html += `
-                    <!-- Mese -->
                     <div class="bg-gray-800 rounded-xl shadow-md p-3 mb-4 border border-gray-700">
                         <div class="flex items-center justify-between gap-4">
                             <button onclick="cambiaMese(-1)" class="bg-gray-700 active:bg-gray-600 text-gray-200 p-2 rounded-lg">
@@ -255,7 +183,6 @@
                         </div>
                     </div>
 
-                    <!-- Calendario -->
                     <div class="bg-gray-800 rounded-xl shadow-md p-4 mb-4 border border-gray-700">
                         <h2 class="text-xl font-bold text-white mb-3 text-center">${nomiMesi[meseSelezionato]} ${annoSelezionato}</h2>
                         <div class="grid grid-cols-4 gap-2">`;
@@ -274,16 +201,24 @@
                 const isItadogun = calcolaItadogun(giorno, meseSelezionato, annoSelezionato);
                 const isJacutaOloyin = calcolaJacutaOloyin(giorno, meseSelezionato, annoSelezionato);
                 
+                let coloreFinale = giornoInfo.colore;
+                if (isOggi) {
+                    coloreFinale = 'bg-blue-600 text-white';
+                }
+                
                 let bordoExtra = '';
-                if (isItadogun) bordoExtra = 'ring-2 ring-yellow-500';
-                if (isJacutaOloyin) bordoExtra = 'ring-2 ring-red-500';
+                if (isItadogun) {
+                    bordoExtra = 'ring-[5px] ring-yellow-400';
+                } else if (isJacutaOloyin) {
+                    bordoExtra = 'ring-[5px] ring-red-500';
+                }
 
                 html += `
-                    <div class="${giornoInfo.colore} rounded-lg p-2 flex flex-col items-center justify-center shadow-sm ${isOggi ? 'ring-2 ring-blue-600' : bordoExtra}">
+                    <div class="${coloreFinale} rounded-lg p-2 flex flex-col items-center justify-center shadow-md ${bordoExtra}">
                         <div class="font-bold text-xl">${giorno}</div>
                         <div class="text-xs font-semibold text-center leading-tight">${giornoInfo.nome}</div>
                         <div class="text-xs text-center">${giornoInfo.orisa.split(',')[0]}</div>
-                        <div class="text-xs text-gray-500 mt-1">${giornoOcc}</div>
+                        <div class="text-xs ${isOggi ? 'text-blue-100' : 'text-gray-500'} mt-1">${giornoOcc}</div>
                         ${haFesta ? `<div class="mt-1 bg-purple-600 text-white text-xs px-2 py-0.5 rounded font-bold">${haFesta.nome}</div>` : ''}
                     </div>`;
             }
@@ -292,7 +227,6 @@
                         </div>
                     </div>
 
-                    <!-- Legenda -->
                     <div class="bg-gray-800 rounded-xl shadow-md p-4 mb-3 border border-gray-700">
                         <h3 class="font-bold text-white mb-2 text-center">Settimana Yoruba (4 giorni)</h3>
                         <div class="grid grid-cols-1 gap-2">`;
@@ -341,6 +275,134 @@
             }
             render();
         }
+
+        // Registrazione Service Worker con notifiche
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(registration => {
+                        console.log('Service Worker registrato');
+                        
+                        setTimeout(() => {
+                            richiediPermessoNotifiche(registration);
+                        }, 3000);
+                        
+                        setInterval(() => {
+                            registration.update();
+                        }, 60000);
+                        
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    if (confirm('📱 Nuova versione disponibile! Vuoi aggiornare?')) {
+                                        newWorker.postMessage({ type: 'SKIP_WAITING' });
+                                        window.location.reload();
+                                    }
+                                }
+                            });
+                        });
+                    })
+                    .catch(error => {
+                        console.log('Errore Service Worker:', error);
+                    });
+                
+                let refreshing;
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    if (refreshing) return;
+                    refreshing = true;
+                    window.location.reload();
+                });
+            });
+        }
+
+        async function richiediPermessoNotifiche(registration) {
+            if (!('Notification' in window)) {
+                console.log('Browser non supporta notifiche');
+                return;
+            }
+
+            if (Notification.permission === 'granted') {
+                programmaNotificaGiornaliera(registration);
+                return;
+            }
+
+            if (Notification.permission !== 'denied') {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    programmaNotificaGiornaliera(registration);
+                    mostraNotificaOggi(registration);
+                }
+            }
+        }
+
+        function programmaNotificaGiornaliera(registration) {
+            const ora = new Date();
+            const domani8 = new Date(ora);
+            domani8.setDate(domani8.getDate() + 1);
+            domani8.setHours(8, 0, 0, 0);
+            const ritardo = domani8 - ora;
+
+            setTimeout(() => {
+                mostraNotificaOggi(registration);
+                setInterval(() => {
+                    mostraNotificaOggi(registration);
+                }, 24 * 60 * 60 * 1000);
+            }, ritardo);
+        }
+
+        function mostraNotificaOggi(registration) {
+            const oggi = new Date();
+            const oseOggi = calcolaOse(oggi.getDate(), oggi.getMonth(), oggi.getFullYear());
+            
+            const giorniMap = [
+                { nome: 'Ọsẹ́ Osa', orisa: 'Obatalá' },
+                { nome: 'Ọsẹ́ Ifá', orisa: 'Ifa' },
+                { nome: 'Ọsẹ́ Ogun', orisa: 'Ogun' },
+                { nome: 'Ọsẹ́ Jakuta', orisa: 'Sango' }
+            ];
+
+            const indice = giorniMap.findIndex(g => g.nome === oseOggi);
+            const orisaPrincipale = indice >= 0 ? giorniMap[indice].orisa : 'Orisa';
+
+            if (registration.showNotification) {
+                registration.showNotification('Calendario IFA - Oggi', {
+                    body: `${oseOggi}\nDedicato a ${orisaPrincipale}`,
+                    icon: 'logo-ifa.png',
+                    badge: 'logo-ifa.png',
+                    tag: 'ose-giornaliero',
+                    renotify: true,
+                    requireInteraction: false,
+                    vibrate: [200, 100, 200],
+                    data: { url: '/Calendario-ifa/' }
+                });
+            }
+        }
+
+        // Gestione installazione PWA
+        let deferredPrompt;
+        const installBanner = document.getElementById('install-banner');
+        const installButton = document.getElementById('install-button');
+        const dismissButton = document.getElementById('dismiss-button');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBanner.style.display = 'block';
+        });
+
+        installButton.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                deferredPrompt = null;
+                installBanner.style.display = 'none';
+            }
+        });
+
+        dismissButton.addEventListener('click', () => {
+            installBanner.style.display = 'none';
+        });
 
         render();
     </script>
