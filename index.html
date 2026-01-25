@@ -75,10 +75,13 @@
         };
 
         const calcolaAnnoYoruba = (anno, mese, giorno) => {
-            if (mese < 5 || (mese === 5 && giorno <= 2)) {
-                return 10066 + (anno - 2025);
+            // L'anno cambia il 3 giugno (dopo il 2 giugno che è l'ultimo giorno dell'anno precedente)
+            if (mese < 5 || (mese === 5 && giorno < 3)) {
+                // Prima del 3 giugno = anno precedente
+                return 10066 + (anno - 2026);
             } else {
-                return 10067 + (anno - 2025);
+                // Dal 3 giugno in poi = nuovo anno
+                return 10067 + (anno - 2026);
             }
         };
 
@@ -113,6 +116,14 @@
 
         const calcolaItadogun = (giorno, mese, anno) => {
             const dataBase = new Date(2025, 9, 13);
+            const dataCorrente = new Date(anno, mese, giorno);
+            const differenzaGiorni = Math.floor((dataCorrente - dataBase) / (1000 * 60 * 60 * 24));
+            return differenzaGiorni >= 0 && differenzaGiorni % 16 === 0;
+        };
+
+        const calcolaOjoNlaObatala = (giorno, mese, anno) => {
+            // Giorno prima di Itadogun: se Itadogun è il 13 ottobre, Ojo nla è il 12
+            const dataBase = new Date(2025, 9, 12); // 12 ottobre 2025
             const dataCorrente = new Date(anno, mese, giorno);
             const differenzaGiorni = Math.floor((dataCorrente - dataBase) / (1000 * 60 * 60 * 24));
             return differenzaGiorni >= 0 && differenzaGiorni % 16 === 0;
@@ -199,6 +210,7 @@
                 const dataCorrente = new Date(annoSelezionato, meseSelezionato, giorno);
                 const giornoOcc = giorniSettimanaOccidentali[dataCorrente.getDay()];
                 const isItadogun = calcolaItadogun(giorno, meseSelezionato, annoSelezionato);
+                const isOjoNlaObatala = calcolaOjoNlaObatala(giorno, meseSelezionato, annoSelezionato);
                 const isJacutaOloyin = calcolaJacutaOloyin(giorno, meseSelezionato, annoSelezionato);
                 
                 let coloreFinale = giornoInfo.colore;
@@ -207,7 +219,9 @@
                 }
                 
                 let bordoExtra = '';
-                if (isItadogun) {
+                if (isOjoNlaObatala) {
+                    bordoExtra = 'ring-[5px] ring-green-500';
+                } else if (isItadogun) {
                     bordoExtra = 'ring-[5px] ring-yellow-400';
                 } else if (isJacutaOloyin) {
                     bordoExtra = 'ring-[5px] ring-red-500';
@@ -244,6 +258,9 @@
                         
                         <h3 class="font-bold text-white mb-2 mt-4 text-center">Giorni Speciali</h3>
                         <div class="grid grid-cols-1 gap-2">
+                            <div class="bg-white rounded-lg p-3 shadow-sm border-4 border-green-500">
+                                <div class="font-bold text-base text-gray-800 text-center">Ojo nla Obatala</div>
+                            </div>
                             <div class="bg-white rounded-lg p-3 shadow-sm border-4 border-yellow-400">
                                 <div class="font-bold text-base text-gray-800 text-center">Itadogun</div>
                             </div>
