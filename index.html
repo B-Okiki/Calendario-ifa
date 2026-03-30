@@ -150,7 +150,7 @@
         const nomiMesi = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
 
         function render() {
-            const oseOggi = calcolaOse(giornoCorrente, meseCorrente, annoSelezionato);
+            const oseOggi = calcolaOse(giornoCorrente, meseCorrente, oggi.getFullYear());
             const annoYoruba = calcolaAnnoYoruba(annoSelezionato, meseSelezionato, giornoCorrente);
             
             const inizioMese = calcolaInizioMese(meseSelezionato, annoSelezionato);
