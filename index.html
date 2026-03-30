@@ -13,6 +13,21 @@
     <link rel="icon" type="image/png" href="logo-ifa.png">
     <link rel="apple-touch-icon" href="logo-ifa.png">
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- OneSignal SDK -->
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+        window.OneSignalDeferred = window.OneSignalDeferred || [];
+        OneSignalDeferred.push(async function(OneSignal) {
+            await OneSignal.init({
+                appId: "3ed9d811-8b27-49c8-87f7-3279fe636a6b",
+                serviceWorkerPath: "OneSignalSDKWorker.js",
+                serviceWorkerParam: { scope: "/Calendario-ifa/" },
+                notifyButton: {
+                    enable: false,
+                },
+            });
+        });
+    </script>
     <style>
         * { -webkit-tap-highlight-color: transparent; }
         body { touch-action: pan-y; }
@@ -75,12 +90,9 @@
         };
 
         const calcolaAnnoYoruba = (anno, mese, giorno) => {
-            // L'anno cambia il 3 giugno (dopo il 2 giugno che è l'ultimo giorno dell'anno precedente)
             if (mese < 5 || (mese === 5 && giorno < 3)) {
-                // Prima del 3 giugno = anno precedente
                 return 10066 + (anno - 2026);
             } else {
-                // Dal 3 giugno in poi = nuovo anno
                 return 10067 + (anno - 2026);
             }
         };
@@ -122,8 +134,7 @@
         };
 
         const calcolaOjoNlaObatala = (giorno, mese, anno) => {
-            // Giorno prima di Itadogun: se Itadogun è il 13 ottobre, Ojo nla è il 12
-            const dataBase = Date.UTC(2025, 9, 12); // 12 ottobre 2025
+            const dataBase = Date.UTC(2025, 9, 12);
             const dataCorrente = Date.UTC(anno, mese, giorno);
             const differenzaGiorni = Math.floor((dataCorrente - dataBase) / (1000 * 60 * 60 * 24));
             return differenzaGiorni >= 0 && differenzaGiorni % 16 === 0;
@@ -293,16 +304,12 @@
             render();
         }
 
-        // Registrazione Service Worker con notifiche
+        // Registrazione Service Worker (solo caching)
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('service-worker.js')
+                navigator.serviceWorker.register('service-worker.js', { scope: '/Calendario-ifa/' })
                     .then(registration => {
                         console.log('Service Worker registrato');
-                        
-                        setTimeout(() => {
-                            richiediPermessoNotifiche(registration);
-                        }, 3000);
                         
                         setInterval(() => {
                             registration.update();
@@ -331,69 +338,6 @@
                     window.location.reload();
                 });
             });
-        }
-
-        async function richiediPermessoNotifiche(registration) {
-            if (!('Notification' in window)) {
-                console.log('Browser non supporta notifiche');
-                return;
-            }
-
-            if (Notification.permission === 'granted') {
-                programmaNotificaGiornaliera(registration);
-                return;
-            }
-
-            if (Notification.permission !== 'denied') {
-                const permission = await Notification.requestPermission();
-                if (permission === 'granted') {
-                    programmaNotificaGiornaliera(registration);
-                    mostraNotificaOggi(registration);
-                }
-            }
-        }
-
-        function programmaNotificaGiornaliera(registration) {
-            const ora = new Date();
-            const domani8 = new Date(ora);
-            domani8.setDate(domani8.getDate() + 1);
-            domani8.setHours(8, 0, 0, 0);
-            const ritardo = domani8 - ora;
-
-            setTimeout(() => {
-                mostraNotificaOggi(registration);
-                setInterval(() => {
-                    mostraNotificaOggi(registration);
-                }, 24 * 60 * 60 * 1000);
-            }, ritardo);
-        }
-
-        function mostraNotificaOggi(registration) {
-            const oggi = new Date();
-            const oseOggi = calcolaOse(oggi.getDate(), oggi.getMonth(), oggi.getFullYear());
-            
-            const giorniMap = [
-                { nome: 'Ọsẹ́ Osa', orisa: 'Obatalá' },
-                { nome: 'Ọsẹ́ Ifá', orisa: 'Ifa' },
-                { nome: 'Ọsẹ́ Ogun', orisa: 'Ogun' },
-                { nome: 'Ọsẹ́ Jakuta', orisa: 'Sango' }
-            ];
-
-            const indice = giorniMap.findIndex(g => g.nome === oseOggi);
-            const orisaPrincipale = indice >= 0 ? giorniMap[indice].orisa : 'Orisa';
-
-            if (registration.showNotification) {
-                registration.showNotification('Calendario IFA - Oggi', {
-                    body: `${oseOggi}\nDedicato a ${orisaPrincipale}`,
-                    icon: 'logo-ifa.png',
-                    badge: 'logo-ifa.png',
-                    tag: 'ose-giornaliero',
-                    renotify: true,
-                    requireInteraction: false,
-                    vibrate: [200, 100, 200],
-                    data: { url: '/Calendario-ifa/' }
-                });
-            }
         }
 
         // Gestione installazione PWA
