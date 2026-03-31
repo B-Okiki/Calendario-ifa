@@ -307,6 +307,12 @@
                 meseSelezionato = 0;
                 annoSelezionato++;
             }
+         async function abilitaNotifiche() {
+            window.OneSignalDeferred = window.OneSignalDeferred || [];
+            OneSignalDeferred.push(async function(OneSignal) {
+                await OneSignal.Notifications.requestPermission();
+            });
+        }
             render();
         }
 
