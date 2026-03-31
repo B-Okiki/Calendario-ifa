@@ -335,13 +335,7 @@
                         });
                     })
                     .catch(error => console.log('Errore Service Worker:', error));
-
-                let refreshing;
-                navigator.serviceWorker.addEventListener('controllerchange', () => {
-                    if (refreshing) return;
-                    refreshing = true;
-                    window.location.reload();
-                });
+               ;
             });
         }
 
