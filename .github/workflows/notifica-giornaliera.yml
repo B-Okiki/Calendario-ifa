@@ -14,53 +14,72 @@ jobs:
           ONESIGNAL_API_KEY: ${{ secrets.ONESIGNAL_API_KEY }}
           ONESIGNAL_APP_ID: "3ed9d811-8b27-49c8-87f7-3279fe636a6b"
         run: |
-          cat << 'EOF' > /tmp/notifica.py
-from datetime import date
-import requests
-import os
+          python3 << 'EOF'
+          import requests
+          from datetime import date, datetime
 
-oggi = date.today()
-riferimento = date(2025, 1, 1)
-differenza = (oggi - riferimento).days
-indice = differenza % 4
+          # Calcola l'Ọsẹ́ del giorno
+          oggi = date.today()
+          riferimento = date(2025, 1, 1)
+          differenza = (oggi - riferimento).days
+          indice = differenza % 4
 
-ose = [
-    {"nome": "Ọsẹ́ Osa",    "orisa": "Obàtálá, Egungun, Madri ancestrali, Yemoja", "emoji": "⚪"},
-    {"nome": "Ọsẹ́ Ifá",    "orisa": "Ifá, Odù, Ajé, Ọṣun, Èṣù, Orì",             "emoji": "🟡"},
-    {"nome": "Ọsẹ́ Ogun",   "orisa": "Ògún, Ọṣọ̀ọ̀sì, Oko, Erinle",               "emoji": "🟢"},
-    {"nome": "Ọsẹ́ Jakuta", "orisa": "Ṣàngó, Ọya, Aganju, Ọbalúayé",               "emoji": "🔴"},
-]
+          ose = [
+              {
+                  "nome": "Ọsẹ́ Osa",
+                  "orisa": "Obàtálá, Egungun, Madri ancestrali, Yemoja",
+                  "emoji": "⚪"
+              },
+              {
+                  "nome": "Ọsẹ́ Ifá",
+                  "orisa": "Ifá, Odù, Ajé, Ọṣun, Èṣù, Orì",
+                  "emoji": "🟡"
+              },
+              {
+                  "nome": "Ọsẹ́ Ogun",
+                  "orisa": "Ògún, Ọṣọ̀ọ̀sì, Oko, Erinle",
+                  "emoji": "🟢"
+              },
+              {
+                  "nome": "Ọsẹ́ Jakuta",
+                  "orisa": "Ṣàngó, Ọya, Aganju, Ọbalúayé",
+                  "emoji": "🔴"
+              }
+          ]
 
-giorno = ose[indice]
-data_formattata = oggi.strftime("%-d/%m/%Y")
-titolo    = f"{giorno['emoji']} {giorno['nome']} — {data_formattata}"
-messaggio = f"Oggi è dedicato a: {giorno['orisa']}"
+          giorno = ose[indice]
+          data_formattata = oggi.strftime("%-d/%m/%Y")
 
-api_key = os.environ["ONESIGNAL_API_KEY"]
-app_id  = os.environ["ONESIGNAL_APP_ID"]
+          titolo = f"{giorno['emoji']} {giorno['nome']} — {data_formattata}"
+          messaggio = f"Oggi è dedicato a: {giorno['orisa']}"
 
-payload = {
-    "app_id": app_id,
-    "included_segments": ["All"],
-    "headings": {"it": titolo, "en": titolo},
-    "contents": {"it": messaggio, "en": messaggio},
-    "url": "https://b-okiki.github.io/Calendario-ifa/",
-    "chrome_web_icon": "https://b-okiki.github.io/Calendario-ifa/logo-ifa.png",
-}
+          # Invia notifica via OneSignal
+          import os
+          api_key = os.environ["ONESIGNAL_API_KEY"]
+          app_id = os.environ["ONESIGNAL_APP_ID"]
 
-response = requests.post(
-    "https://onesignal.com/api/v1/notifications",
-    headers={
-        "Authorization": f"Key {api_key}",
-        "Content-Type": "application/json"
-    },
-    json=payload
-)
+          payload = {
+              "app_id": app_id,
+              "included_segments": ["All"],
+              "headings": {"it": titolo, "en": titolo},
+              "contents": {"it": messaggio, "en": messaggio},
+              "url": "https://b-okiki.github.io/Calendario-ifa/",
+              "chrome_web_icon": "https://b-okiki.github.io/Calendario-ifa/logo-ifa.png",
+          }
 
-print(f"Status: {response.status_code}")
-print(f"Risposta: {response.text}")
+          response = requests.post(
+              "https://onesignal.com/api/v1/notifications",
+              headers={
+                  "Authorization": f"Key {api_key}",
+                  "Content-Type": "application/json"
+              },
+              json=payload
+          )
 
-if response.status_code != 200:
-    exit(1)
-EOF
-          python3 /tmp/notifica.py
+          print(f"Status: {response.status_code}")
+          print(f"Risposta: {response.text}")
+
+          if response.status_code != 200:
+              exit(1)
+
+          EOF
