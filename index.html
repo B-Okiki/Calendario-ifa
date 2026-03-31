@@ -316,7 +316,41 @@
             render();
         }
 
-
+          // Registrazione Service Worker (solo caching)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('OneSignalSDKWorker.js', { scope: '/Calendario-ifa/' })
+                    .then(registration => {
+                        console.log('Service Worker registrato');
+                        
+                        setInterval(() => {
+                            registration.update();
+                        }, 60000);
+                        
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    if (confirm('📱 Nuova versione disponibile! Vuoi aggiornare?')) {
+                                        newWorker.postMessage({ type: 'SKIP_WAITING' });
+                                        window.location.reload();
+                                    }
+                                }
+                            });
+                        });
+                    })
+                    .catch(error => {
+                        console.log('Errore Service Worker:', error);
+                    });
+                
+                let refreshing;
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    if (refreshing) return;
+                    refreshing = true;
+                    window.location.reload();
+                });
+            });
+        }
         // Gestione installazione PWA
         let deferredPrompt;
         const installBanner = document.getElementById('install-banner');
