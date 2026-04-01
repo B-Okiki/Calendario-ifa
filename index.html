@@ -26,24 +26,7 @@
                     notifyButton: { enable: false },
                 });
         
-                OneSignalInstance = OneSignal;
         
-                const stato = await OneSignal.Notifications.permission;
-                const id = await OneSignal.User.PushSubscription.id;
-                const attivo = await OneSignal.User.PushSubscription.optedIn;
-        
-                const div = document.createElement('div');
-                div.style = 'position:fixed;top:0;left:0;right:0;background:#000;color:#0f0;font-size:11px;padding:8px;z-index:9999;word-break:break-all;';
-                div.innerHTML = `🔔 Permission: ${stato}<br>📱 SubID: ${id || 'NESSUNO'}<br>✅ OptedIn: ${attivo}`;
-                document.body.appendChild(div);
-        
-            } catch(e) {
-                const div = document.createElement('div');
-                div.style = 'position:fixed;top:0;left:0;right:0;background:red;color:white;font-size:11px;padding:8px;z-index:9999;word-break:break-all;';
-                div.innerHTML = `❌ ERRORE: ${e.message}`;
-                document.body.appendChild(div);
-            }
-        });
 
     </script>
     <style>
